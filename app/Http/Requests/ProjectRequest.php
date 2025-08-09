@@ -2,16 +2,20 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Traits\ApiTraits;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ProjectRequest extends FormRequest
 {
+    use ApiTraits;
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +26,15 @@ class ProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255', 
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        $response = $this->validationError(
+            $validator->errors(),
+        );
+        throw new ValidationException($validator, $response);
     }
 }

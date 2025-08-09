@@ -27,4 +27,11 @@ class RoleMiddleware
         }
         return $next($request);
     }
+
+    protected function unauthenticated($request, array $guards)
+    {
+        return response()->json([
+            'error' => 'Unauthenticated. Please login.'
+        ], 401);
+    }
 }

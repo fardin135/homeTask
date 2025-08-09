@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProjectRequest;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use App\Http\Traits\ApiTraits;
@@ -22,13 +23,12 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProjectRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-        // $project = Auth::user()->projects()->create($validated);
-        // return $this->success('Project created successfully', $project, 201);
+        $validated = $request->validated();
+        $project = Auth::user()->projects()->create($validated);
+        $project->tags()->attach($request->tags);
+        return $this->success('Project created successfully', $project->load('tags'), 201);
     }
 
     /**
@@ -36,15 +36,23 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
-        //
+        if ($project->user_id !== Auth::id()) {
+            return $this->error('Unauthorized access to project', 403);
+        }
+        return $this->showData($project);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Project $project)
+    public function update(ProjectRequest $request, Project $project)
     {
-        //
+        if ($project->user_id !== Auth::id()) {
+            return $this->error('Unauthorized access to update project', 403);
+        }
+
+        $project->update($request->validated());
+        return $this->success('Project updated successfully', $project);
     }
 
     /**
@@ -52,6 +60,11 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project)
     {
-        //
+        if ($project->user_id !== Auth::id()) {
+            return $this->error('Unauthorized access to delete project', 403);
+        }
+
+        $project->delete();
+        return $this->success('Project deleted successfully');
     }
 }

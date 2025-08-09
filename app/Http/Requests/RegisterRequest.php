@@ -38,7 +38,6 @@ class RegisterRequest extends FormRequest
         $response = $this->validationError(
             $validator->errors(),
         );
-
         throw new ValidationException($validator, $response);
     }
 }
